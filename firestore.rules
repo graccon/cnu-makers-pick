@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owns(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /sessions/{sessionId} {
+      allow create: if owns(request.resource.data.uid)
+        && request.resource.data.sessionId == sessionId;
+      allow read: if owns(resource.data.uid);
+      allow update: if owns(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.sessionId == sessionId;
+    }
+
+    match /surveys/{surveyId} {
+      allow create: if owns(request.resource.data.uid);
+      allow read: if owns(resource.data.uid);
+      allow update: if owns(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid;
+    }
+  }
+}
